@@ -19,6 +19,26 @@ app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
 app.use(bodyParser.json())
 
+const strConnection = 'mongodb+srv://admin:admin@cluster0.pkagd.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
+const mongoose = require('mongoose');
+
+main().catch(err => console.log(err));
+
+async function main() {
+  //connects the server to the database
+    await mongoose.connect(strConnection);
+}
+
+const movieSchema = new mongoose.Schema({
+    //Sdefines the title,year and poster
+    Title:String,
+    Year:String,
+    Poster:String
+});
+
+//compiles our schema into a model
+const movieModel = mongoose.model('movie',movieSchema);
+
 app.get('/', (req, res) => {
     res.send('Hello World!')
 })
@@ -28,43 +48,29 @@ app.post('/api/movies', (req,res)=>{
     console.log(req.body.Title);
     console.log(req.body.Year);
     console.log(req.body.Poster);
+
+    //tells the moviemodel what the title year and poster are
+    movieModel.create({
+        Title: req.body.Title,
+        Year: req.body.Year,
+        Poster: req.body.Poster
+    })
     res.send('Data Sent to Server!')
 })
 
+app.get('/api/movies/:id',(req,res)=>{
+   //reads in what the user looks for after api/movies and returns it on the console
+    console.log(req.params.id)
+
+    movieModel.findById(req.params.id,(err,data)=>{
+        res.json(data);
+    })
+})
+
 app.get('/api/movies', (req, res) => {
-    const movies = [
-        {
-            "Title": "Avengers: Infinity War",
-            "Year": "2018",
-            "imdbID": "tt4154756",
-            "Type": "movie",
-            "Poster": "https://m.media-amazon.com/images/M/MV5BMjMxNjY2MDU1OV5BMl5BanBnXkFtZTgwNzY1MTUwNTM@._V1_SX300.jpg"
-        },
-        {
-            "Title": "Captain America: Civil War",
-            "Year": "2016",
-            "imdbID": "tt3498820",
-            "Type": "movie",
-            "Poster": "https://m.media-amazon.com/images/M/MV5BMjQ0MTgyNjAxMV5BMl5BanBnXkFtZTgwNjUzMDkyODE@._V1_SX300.jpg"
-        },
-        {
-            "Title": "World War Z",
-            "Year": "2013",
-            "imdbID": "tt0816711",
-            "Type": "movie",
-            "Poster": "https://m.media-amazon.com/images/M/MV5BNDQ4YzFmNzktMmM5ZC00MDZjLTk1OTktNDE2ODE4YjM2MjJjXkEyXkFqcGdeQXVyNTA4NzY1MzY@._V1_SX300.jpg"
-        }, 
-        {
-            "Title": "War of the Worlds",
-            "Year": "2005",
-            "imdbID": "tt0407304",
-            "Type": "movie",
-            "Poster": "https://m.media-amazon.com/images/M/MV5BNDUyODAzNDI1Nl5BMl5BanBnXkFtZTcwMDA2NDAzMw@@._V1_SX300.jpg"
-        }
-    ];
-    res.json({
-        mymovies:movies,
-        'Message':'Hello from the server'
+    //if it finds the data it sends it back
+    movieModel.find((err, data)=>{
+        res.json(data);
     })
 })
 
